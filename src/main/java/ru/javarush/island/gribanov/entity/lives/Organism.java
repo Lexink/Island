@@ -18,15 +18,15 @@ public abstract class Organism implements Reproducible, Serializable, Cloneable 
     private boolean isALive = true;
     private final double cellWeight;
 
-    private Limit limit;
+    protected final Limit LIMIT;
 
     public Organism(String name, String icon, double weight, Limit limit) {
         this.name = name;
         this.icon = icon;
         this.weight = weight;
-        this.limit = limit;
+        this.LIMIT = limit;
 
-        cellWeight = weight/ limit.getCOUNT_ON_CELL();
+        cellWeight = weight/ LIMIT.getCOUNT_ON_CELL();
     }
 
     public String getType() {
@@ -34,18 +34,37 @@ public abstract class Organism implements Reproducible, Serializable, Cloneable 
     }
 
     public Limit getLimit() {
-        return limit;
+        return LIMIT;
     }
 
     public double getWeight() {
         return weight;
     }
 
+    public boolean isALive() {
+        return isALive;
+    }
+
+    public double getCellWeight() {
+        return cellWeight;
+    }
+
+    public void setWeight(double weight) {
+        this.weight = weight;
+        if (weight <= 0){
+            this.isALive = false;
+        }
+    }
+
+    public void setALive(boolean ALive) {
+        isALive = ALive;
+    }
+
     @Override
     protected Object clone() throws CloneNotSupportedException {
         Organism clone = (Organism) super.clone();
         clone.id = idCounter.incrementAndGet();
-        clone.weight = limit.getMAX_WEIGHT();
+        clone.weight = LIMIT.getMAX_WEIGHT();
         return clone;
     }
 
@@ -71,5 +90,19 @@ public abstract class Organism implements Reproducible, Serializable, Cloneable 
 
     public String getIcon() {
         return icon;
+    }
+
+    @Override
+    public String toString() {
+        return "Organism{" +
+                "name='" + name + '\'' +
+                ", type='" + type + '\'' +
+                ", id=" + id +
+                ", icon='" + icon + '\'' +
+                ", weight=" + weight +
+                ", isALive=" + isALive +
+                ", cellWeight=" + cellWeight +
+                ", limit=" + LIMIT +
+                '}';
     }
 }

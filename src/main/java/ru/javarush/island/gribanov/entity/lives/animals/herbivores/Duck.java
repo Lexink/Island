@@ -19,8 +19,4 @@ public class Duck extends Herbivore{
         super(name, icon, weight, limit, sex);
     }
 
-    @Override
-    public void eat(Cell currentCell) {
-
-    }
 }

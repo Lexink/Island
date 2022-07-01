@@ -4,10 +4,6 @@ import ru.javarush.island.gribanov.entity.lives.Organism;
 import ru.javarush.island.gribanov.entity.map.Cell;
 import ru.javarush.island.gribanov.entity.map.GameMap;
 import ru.javarush.island.gribanov.utils.Configuration;
-import com.javarush.island.khmelov.config.Setting;
-import com.javarush.island.khmelov.entity.map.Cell;
-import com.javarush.island.khmelov.entity.map.GameMap;
-import com.javarush.island.khmelov.entity.organizms.Organism;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -18,7 +14,7 @@ import java.util.stream.IntStream;
 
 public class ConsoleView implements View {
 
-    public static class Color {
+   public static class Color {
 
 
         public static final String RESET = "\u001B[0m";
@@ -55,7 +51,7 @@ public class ConsoleView implements View {
     }
 
     private final GameMap gameMap;
-    private final int cellWidth = Configuration.get().getConsoleCellWith();
+    private final int cellWidth = 3;
     private final String border = "═".repeat(cellWidth);
 
     public ConsoleView(GameMap gameMap) {
@@ -89,8 +85,8 @@ public class ConsoleView implements View {
     public String showMap() {
         StringBuilder out = new StringBuilder("\n");
         Cell[][] cells = gameMap.getCells();
-        final int cols = gameMap.getCols();
-        final int rows = gameMap.getRows();
+        final int cols = gameMap.WIDTH;
+        final int rows = gameMap.HEIGHT;
         for (int row = 0; row < rows; row++) {
             out.append(row == 0
                     ? line(cols, '╔', '╦', '╗')
@@ -117,7 +113,7 @@ public class ConsoleView implements View {
                     Organism organism = list.stream().findAny().get();
                     int maxCount = organism.getLimit().getCOUNT_ON_CELL();
                     String color = Color.getColor(list.size(), maxCount);
-                    return color + organism.getLetter() + Color.RESET;
+                    return color + getLetter(organism) + Color.RESET;
                 })
                 .map(Object::toString)
                 .collect(Collectors.joining());
@@ -132,5 +128,9 @@ public class ConsoleView implements View {
         return (IntStream.range(0, cols)
                 .mapToObj(col -> (col == 0 ? left : center) + border)
                 .collect(Collectors.joining("", "", String.valueOf(right))));
+    }
+
+    private String getLetter(Organism organism){
+        return organism.getClass().getSimpleName().substring(0, 1);
     }
 }

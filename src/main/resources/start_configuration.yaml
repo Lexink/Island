@@ -1,8 +1,8 @@
 ---
 period: 100
-rows: 10
-cols: 20
-foodMap:
+height: 10
+width: 50
+probabilityFoodMap:
   Wolf:
     Horse: 10
     Deer: 15
@@ -183,5 +183,13 @@ parameters:
     minWeight: 0.0
     startWeightDivisor: 1
     count: 1000
+    speed: 0
+    foodWeight: 0.0
+  - name: "Plant"
+    icon: "🌱"
+    maxWeight: 1
+    minWeight: 0.0
+    startWeightDivisor: 1
+    count: 200
     speed: 0
     foodWeight: 0.0

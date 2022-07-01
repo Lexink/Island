@@ -8,7 +8,9 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import ru.javarush.island.gribanov.constants.OrganismTypes;
 import ru.javarush.island.gribanov.constants.Sex;
 import ru.javarush.island.gribanov.entity.lives.Limit;
+import ru.javarush.island.gribanov.entity.lives.Organism;
 import ru.javarush.island.gribanov.entity.lives.animals.Animal;
+import ru.javarush.island.gribanov.entity.lives.plants.Plant;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -36,7 +38,7 @@ public class Configuration implements Serializable {
         return config;
     }
     @JsonIgnore
-    private Animal[] prototypes;
+    private Organism[] prototypes;
     private int period;
     private int height;
     private int width;
@@ -59,6 +61,7 @@ public class Configuration implements Serializable {
         height = DefaultConfig.ROWS;
         width = DefaultConfig.COLS;
         parameters = DefaultConfig.parameters;
+        this.prototypes = createPrototypes();
         for (int i = 0, n = DefaultConfig.names.length; i < n; i++) {
             String key = DefaultConfig.names[i];
             this.probabilityFoodMap.putIfAbsent(key, new LinkedHashMap<>());
@@ -97,12 +100,20 @@ public class Configuration implements Serializable {
         return width;
     }
 
-    public Animal[] getPrototypes() {
+    public Organism[] getPrototypes() {
         return prototypes;
     }
 
-    private Animal[] createPrototypes() {
-        Animal[] animals = new Animal[OrganismTypes.values().length];
+    public Map<String, Map<String, Integer>> getProbabilityFoodMap() {
+        return probabilityFoodMap;
+    }
+
+    public Parameters[] getParameters() {
+        return parameters;
+    }
+
+    private Organism[] createPrototypes() {
+        Organism[] organisms = new Organism[OrganismTypes.values().length];
         int index = 0;
         for (OrganismTypes type : OrganismTypes.values()) {
             for (Parameters parameter : parameters) {
@@ -118,17 +129,23 @@ public class Configuration implements Serializable {
                             parameter.getFoodWeight()
                     );
                     double weight = limit.getMAX_WEIGHT()/parameter.getStartWeightDivisor();
-                    animals[index++] = generatePrototype(type.getClazz(), name, icon, weight, limit);
+                    organisms[index++] = generatePrototype(type.getClazz(), name, icon, weight, limit);
                 }
             }
         }
-        return animals;
+        return organisms;
     }
 
-    private Animal generatePrototype(Class<?> type, String name, String icon, double weight, Limit limit) {
+    private Organism generatePrototype(Class<?> type, String name, String icon, double weight, Limit limit) {
         try {
-            Constructor<?> constructor = type.getConstructor(String.class, String.class, double.class, Limit.class, Sex.class);
-            return (Animal) constructor.newInstance(name, icon, weight, limit, Sex.FEMALE);
+            Constructor<?> constructor;
+            if ("Plant".equals(type.getSimpleName())){
+                constructor = type.getConstructor(String.class, String.class, double.class, Limit.class);
+                return (Plant) constructor.newInstance(name, icon, weight, limit);
+            } else {
+                constructor = type.getConstructor(String.class, String.class, double.class, Limit.class, Sex.class);
+                return (Animal) constructor.newInstance(name, icon, weight, limit, Sex.FEMALE);
+            }
         } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
             throw new RuntimeException("not found Entity constructor", e);
         }

@@ -18,9 +18,9 @@ public class DefaultConfig {
     };
 
     static {
-        parameters = new Parameters[names.length -1];
+        parameters = new Parameters[names.length];
         for (int i = 0; i < parameters.length; i++) {
-            parameters[i] = new Parameters(names[i],"", 0.0, 0.0, 1, 1, 1, 0.0);
+            parameters[i] = new Parameters(names[i],"", 0.0, 0.0, 1, 1, 0, 0.0);
         }
     }
     @JsonIgnore

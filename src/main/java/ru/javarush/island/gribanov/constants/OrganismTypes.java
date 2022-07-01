@@ -3,9 +3,11 @@ package ru.javarush.island.gribanov.constants;
 import ru.javarush.island.gribanov.entity.lives.Organism;
 import ru.javarush.island.gribanov.entity.lives.animals.herbivores.*;
 import ru.javarush.island.gribanov.entity.lives.animals.predators.*;
+import ru.javarush.island.gribanov.entity.lives.plants.Plant;
 
 
 public enum OrganismTypes {
+    PLANT(Plant.class),
     BOAR(Boar.class),
     BUFFALO(Buffalo.class),
     CATERPILLAR(Caterpillar.class),

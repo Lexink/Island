@@ -4,5 +4,5 @@ import ru.javarush.island.gribanov.entity.map.Cell;
 
 @FunctionalInterface
 public interface Eatable {
-    void eat(Cell currentCell);
+    boolean eat(Cell currentCell);
 }

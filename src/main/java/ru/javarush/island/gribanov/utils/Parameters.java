@@ -10,6 +10,10 @@ public class Parameters {
     private int speed;
     private double foodWeight;
 
+    public Parameters() {
+
+    }
+
     public Parameters(String name, String icon, double maxWeight, double minWeight, int startWeightDivisor, int count, int speed, double foodWeight) {
         this.name = name;
         this.icon = icon;

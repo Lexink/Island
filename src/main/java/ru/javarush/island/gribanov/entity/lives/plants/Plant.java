@@ -16,6 +16,10 @@ public class Plant extends Organism {
         super("Растение", "\uD83C\uDF31", limit.getMAX_WEIGHT(), limit);
     }
 
+    public Plant(String name, String icon, double weight, Limit limit) {
+        super(name, icon, weight, limit);
+    }
+
     @Override
     public void spawn(Cell currentCell) {
         currentCell.getLock().lock();
