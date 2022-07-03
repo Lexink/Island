@@ -1,6 +1,7 @@
 package ru.javarush.island.gribanov.utils;
 
 import ru.javarush.island.gribanov.entity.lives.Organism;
+import ru.javarush.island.gribanov.entity.lives.plants.Plant;
 import ru.javarush.island.gribanov.entity.map.Cell;
 import ru.javarush.island.gribanov.entity.map.GameMap;
 import ru.javarush.island.gribanov.exception.IslandException;
@@ -20,6 +21,12 @@ public class MapCreator {
             for (int j = 0; j < cells[i].length; j++) {
 
                 cells[i][j] = new Cell(i, j,randomFillResidents());
+            }
+        }
+        for (int i = 0; i < cells.length; i++) {
+            for (int j = 0; j < cells[i].length; j++) {
+
+                cells[i][j].updateNeighbors(gameMap);
             }
         }
         return gameMap;
@@ -47,7 +54,7 @@ public class MapCreator {
             int organismQty = organism
                     .getLimit()
                     .getCOUNT_ON_CELL();
-            int qtyLimit = "Plant".equalsIgnoreCase(type) ? organismQty : organismQty/2;
+            int qtyLimit = organism instanceof Plant ? organismQty : organismQty/4;
             for (int i = 0; i < RandomGenerator.random(0,qtyLimit); i++) {
                 organisms.add(Organism.replicate(organism));
             }

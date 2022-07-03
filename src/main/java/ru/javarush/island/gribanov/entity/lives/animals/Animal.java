@@ -6,19 +6,30 @@ import ru.javarush.island.gribanov.constants.Sex;
 import ru.javarush.island.gribanov.entity.lives.Limit;
 import ru.javarush.island.gribanov.entity.lives.Organism;
 import ru.javarush.island.gribanov.entity.map.Cell;
+import ru.javarush.island.gribanov.exception.IslandException;
 import ru.javarush.island.gribanov.utils.Configuration;
 import ru.javarush.island.gribanov.utils.RandomGenerator;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public abstract class Animal extends Organism implements Eatable, Movable {
 
-    private final Sex sex;
+    private Sex sex;
     public Animal(String name, String icon, double weight, Limit limit, Sex sex) {
 
         super(name, icon, weight, limit);
+        this.sex = sex;
+    }
+
+    public Sex getSex() {
+        return sex;
+    }
+
+    private void setSex(Sex sex) {
         this.sex = sex;
     }
 
@@ -63,19 +74,128 @@ public abstract class Animal extends Organism implements Eatable, Movable {
         }
     }
 
+
+
+    @Override
+    public void move(Cell startCell) {
+        startCell.getLock().lock();
+        try {
+            int speed = LIMIT.getSPEED();
+            if (speed > 0) {
+                int stepsCount = RandomGenerator.random(0, speed);
+                Cell previousCell = startCell;
+                Cell destinationCell = null;
+                int maxCountOnCell = LIMIT.getCOUNT_ON_CELL();
+                for (int i = 0; i < stepsCount; i++) {
+                    List<Cell> neighborCells = previousCell.getNeighboringCells();
+                    if (neighborCells.size() == 1){
+                        destinationCell = neighborCells.get (0);
+                    } else if (neighborCells.size() > 0) {
+                        destinationCell = neighborCells.get(RandomGenerator.random(0, neighborCells.size() - 1));
+                    }
+                    if (destinationCell != null && destinationCell.getResidents().get(getType()).size() < maxCountOnCell) {
+                        previousCell = destinationCell;
+                    } else {
+                        destinationCell = startCell;
+                    }
+                }
+                if (destinationCell != null) {
+                    safeMove(startCell, destinationCell);
+                }
+            }
+
+        } finally {
+            startCell.getLock().unlock();
+        }
+    }
+
+    protected boolean safeMove(Cell source, Cell destination) {
+        if (safeAddTo(destination)) { //if was added
+            if (safePollFrom(source)) { //and after was extract
+                return true; //ok
+            } else {
+                safePollFrom(destination); //die or eaten
+            }
+        }
+        return false;
+    }
+
+    protected boolean safeAddTo(Cell cell) {
+        cell.getLock().lock();
+        try {
+            Set<Organism> set = cell.getResidents().get(getType());
+            int maxCount = getLimit().getCOUNT_ON_CELL();
+            int size = set.size();
+            return size < maxCount && set.add(this);
+        } finally {
+            cell.getLock().unlock();
+        }
+    }
+
+    protected boolean safePollFrom(Cell cell) {
+        cell.getLock().lock();
+        try {
+            return cell.getResidents().get(getType()).remove(this);
+        } finally {
+            cell.getLock().unlock();
+        }
+    }
+
+    @Override
+    public void spawn(Cell currentCell) {
+        currentCell.getLock().lock();
+        try {
+            double minWeightRatio = sex.equals(Sex.FEMALE)?0.9:0.5;
+            if(isALive() && getWeight() > getLimit().getMAX_WEIGHT() * minWeightRatio){
+                Sex partnerSex = sex.equals(Sex.FEMALE)?Sex.MALE:Sex.FEMALE;
+                Set<Organism> partners = getPartners(currentCell, partnerSex);
+                if (partners.size() > 0){
+                    Sex childSex = Sex.values()[RandomGenerator.random(0, Sex.values().length -1)];
+                    Animal child = (Animal) Organism.replicate(getPrototype());
+                    child.setSex(childSex);
+                    if (sex.equals(Sex.FEMALE)) {
+                        setWeight(getWeight() - getWeight() * 0.3);
+                    }
+                }
+            }
+        }
+        finally {
+            currentCell.getLock().unlock();
+        }
+    }
+
     private double getWeightToEat() {
         double maxEatingWeight = LIMIT.getMAX_EATING_WEIGHT();
         double hungryWeight = LIMIT.getMAX_WEIGHT() - this.getWeight();
         return Math.min(hungryWeight, maxEatingWeight);
     }
 
-    @Override
-    public void move(Cell startCell) {
-
+    private Set<Organism> getPartners(Cell cell, Sex partnerSex){
+        double minWeightRatio = partnerSex.equals(Sex.FEMALE)?0.9:0.5;
+        Set<Organism> partners;
+        partners = cell
+                .getResidents()
+                .get(getType())
+                .stream()
+                .map(o ->((Animal) o))
+                .filter(a->a.isALive()
+                        && partnerSex.equals(a.getSex())
+                        && a.getWeight() > a.getWeight()*minWeightRatio)
+                .collect(Collectors.toSet());
+        return partners;
     }
 
-    @Override
-    public void spawn(Cell currentCell) {
-
+    private Organism getPrototype(){
+        Organism organism = null;
+        for (Organism prototype : Configuration.get().getPrototypes()) {
+            if (getType().equalsIgnoreCase(prototype.getClass().getSimpleName())){
+                organism = prototype;
+            }
+        }
+        if (organism != null){
+            return organism;
+        } else {
+            throw new IslandException("Prototype not found");
+        }
     }
 }

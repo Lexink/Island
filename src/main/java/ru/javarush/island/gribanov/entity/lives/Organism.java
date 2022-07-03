@@ -51,7 +51,7 @@ public abstract class Organism implements Reproducible, Serializable, Cloneable 
 
     public void setWeight(double weight) {
         this.weight = weight;
-        if (weight <= 0){
+        if (weight <= LIMIT.getMIN_WEIGHT()){
             this.isALive = false;
         }
     }
