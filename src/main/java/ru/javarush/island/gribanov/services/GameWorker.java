@@ -27,7 +27,7 @@ public class GameWorker extends Thread {
         View view = game.getView();
         view.showMap();
         view.showStatistics();
-        ScheduledExecutorService mainPool = Executors.newScheduledThreadPool(4);
+        ScheduledExecutorService mainPool = Executors.newScheduledThreadPool(8);
 
         List<OrganismWorker> workers = Arrays.stream(Configuration.get()
                 .getPrototypes()).toList()
@@ -35,7 +35,7 @@ public class GameWorker extends Thread {
                 .map(o -> new OrganismWorker(o, game.getGameMap()))
                 .toList();
         mainPool.scheduleAtFixedRate(() -> {
-            ExecutorService servicePool = Executors.newFixedThreadPool(4);
+            ExecutorService servicePool = Executors.newFixedThreadPool(8);
             workers.forEach(servicePool::submit);
             servicePool.shutdown();
             try {

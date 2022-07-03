@@ -19,10 +19,6 @@ public class Task {
         return organism;
     }
 
-    public Consumer<Organism> getOperation() {
-        return operation;
-    }
-
     public void run() {
         operation.accept(organism);
     }

@@ -33,7 +33,7 @@ public class Cell {
         Cell[][] mapCells = gameMap.getCells();
         Cell cellToAdd;
         for (int i = ROW - 1; i <= ROW + 1; i++) {
-            for (int j = COLUMN - 1; j < COLUMN + 1; j++) {
+            for (int j = COLUMN - 1; j <= COLUMN + 1; j++) {
                 if (i >= 0 && j >= 0 && i < gameMap.HEIGHT && j < gameMap.WIDTH){
                     cellToAdd = mapCells[i][j];
                     if (!this.equals(cellToAdd)) {

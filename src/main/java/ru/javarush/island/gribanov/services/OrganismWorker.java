@@ -29,9 +29,8 @@ public class OrganismWorker implements Runnable {
                 try {
                     processOneCell(cell);
                 } catch (Exception e) {
-                    //TODO replace it -> throw...
                     e.printStackTrace();
-                    System.err.println("OMG. Debug it!");
+                    System.err.println("Unknown ERROR. Debug it!");
                     System.exit(0);
                 }
             }
@@ -40,7 +39,14 @@ public class OrganismWorker implements Runnable {
 
     private void processOneCell(Cell cell) {
         String type = prototype.getType();
-        Set<Organism> organisms = cell.getResidents().get(type);
+        Set<Organism> organisms;
+        try {
+            cell.getLock().lock();
+            organisms = cell.getResidents().get(type);
+        } finally {
+            cell.getLock().unlock();
+        }
+
         if (Objects.nonNull(organisms)) {
             //build tasks (need correct iteration, without any modification)
             cell.getLock().lock(); //ONLY READ
@@ -52,6 +58,10 @@ public class OrganismWorker implements Runnable {
                         if (organism instanceof Animal animal) {
                             animal.eat(cell);
                             animal.move(cell);
+                        }
+                        o.setWeight(o.getWeight() - o.getLimit().getMAX_WEIGHT()*0.05);
+                        if (o.getWeight() <= 0.0){
+                            o.safeDie(cell);
                         }
                     });
                     tasks.add(task);

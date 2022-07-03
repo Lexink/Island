@@ -9,14 +9,13 @@ import java.util.concurrent.atomic.AtomicLong;
 public abstract class Organism implements Reproducible, Serializable, Cloneable {
 
     private final static AtomicLong idCounter = new AtomicLong(System.currentTimeMillis());
-    private String name;
+    private final String name;
 
     private final String type = this.getClass().getSimpleName();
     private long id = idCounter.incrementAndGet();
-    private String icon;
+    private final String icon;
     private double weight;
     private boolean isALive = true;
-    private final double cellWeight;
 
     protected final Limit LIMIT;
 
@@ -25,8 +24,6 @@ public abstract class Organism implements Reproducible, Serializable, Cloneable 
         this.icon = icon;
         this.weight = weight;
         this.LIMIT = limit;
-
-        cellWeight = weight/ LIMIT.getCOUNT_ON_CELL();
     }
 
     public String getType() {
@@ -45,19 +42,11 @@ public abstract class Organism implements Reproducible, Serializable, Cloneable 
         return isALive;
     }
 
-    public double getCellWeight() {
-        return cellWeight;
-    }
-
     public void setWeight(double weight) {
         this.weight = weight;
         if (weight <= LIMIT.getMIN_WEIGHT()){
             this.isALive = false;
         }
-    }
-
-    public void setALive(boolean ALive) {
-        isALive = ALive;
     }
 
     @Override
@@ -71,18 +60,17 @@ public abstract class Organism implements Reproducible, Serializable, Cloneable 
     public static <T extends Organism> T replicate(T original) {
         try {
             return (T) original.clone();
-        } catch (CloneNotSupportedException e) {
+        } catch (CloneNotSupportedException|ClassCastException e) {
             throw new AssertionError(e);
         }
     }
 
-    protected boolean safeDie(Cell target) {
+    public void safeDie(Cell target) {
         target.getLock().lock();
         try {
             if (!this.isALive) {
-                return target.getResidents().get(type).remove(this);
+                target.getResidents().get(type).remove(this);
             }
-            return false;
         } finally {
             target.getLock().unlock();
         }
@@ -101,7 +89,6 @@ public abstract class Organism implements Reproducible, Serializable, Cloneable 
                 ", icon='" + icon + '\'' +
                 ", weight=" + weight +
                 ", isALive=" + isALive +
-                ", cellWeight=" + cellWeight +
                 ", limit=" + LIMIT +
                 '}';
     }

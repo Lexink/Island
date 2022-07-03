@@ -1,6 +1,8 @@
 package ru.javarush.island.gribanov.utils;
 
+import ru.javarush.island.gribanov.constants.Sex;
 import ru.javarush.island.gribanov.entity.lives.Organism;
+import ru.javarush.island.gribanov.entity.lives.animals.Animal;
 import ru.javarush.island.gribanov.entity.lives.plants.Plant;
 import ru.javarush.island.gribanov.entity.map.Cell;
 import ru.javarush.island.gribanov.entity.map.GameMap;
@@ -23,10 +25,9 @@ public class MapCreator {
                 cells[i][j] = new Cell(i, j,randomFillResidents());
             }
         }
-        for (int i = 0; i < cells.length; i++) {
-            for (int j = 0; j < cells[i].length; j++) {
-
-                cells[i][j].updateNeighbors(gameMap);
+        for (Cell[] cell : cells) {
+            for (Cell value : cell) {
+                value.updateNeighbors(gameMap);
             }
         }
         return gameMap;
@@ -55,8 +56,13 @@ public class MapCreator {
                     .getLimit()
                     .getCOUNT_ON_CELL();
             int qtyLimit = organism instanceof Plant ? organismQty : organismQty/4;
-            for (int i = 0; i < RandomGenerator.random(0,qtyLimit); i++) {
-                organisms.add(Organism.replicate(organism));
+            int minQty = organism instanceof Plant ? organismQty/2 : 0;
+            for (int i = 0; i < RandomGenerator.random(minQty,qtyLimit); i++) {
+                Organism newOrganism = Organism.replicate(organism);
+                if (newOrganism instanceof Animal animal){
+                    animal.setSex(Sex.values()[RandomGenerator.random(0, Sex.values().length)]);
+                }
+                organisms.add(newOrganism);
             }
             return organisms;
         } else {

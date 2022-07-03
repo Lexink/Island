@@ -29,7 +29,7 @@ public abstract class Animal extends Organism implements Eatable, Movable {
         return sex;
     }
 
-    private void setSex(Sex sex) {
+    public void setSex(Sex sex) {
         this.sex = sex;
     }
 
@@ -78,46 +78,39 @@ public abstract class Animal extends Organism implements Eatable, Movable {
 
     @Override
     public void move(Cell startCell) {
-        startCell.getLock().lock();
-        try {
-            int speed = LIMIT.getSPEED();
-            if (speed > 0) {
-                int stepsCount = RandomGenerator.random(0, speed);
-                Cell previousCell = startCell;
-                Cell destinationCell = null;
-                int maxCountOnCell = LIMIT.getCOUNT_ON_CELL();
-                for (int i = 0; i < stepsCount; i++) {
-                    List<Cell> neighborCells = previousCell.getNeighboringCells();
-                    if (neighborCells.size() == 1){
-                        destinationCell = neighborCells.get (0);
-                    } else if (neighborCells.size() > 0) {
-                        destinationCell = neighborCells.get(RandomGenerator.random(0, neighborCells.size() - 1));
-                    }
-                    if (destinationCell != null && destinationCell.getResidents().get(getType()).size() < maxCountOnCell) {
-                        previousCell = destinationCell;
-                    } else {
-                        destinationCell = startCell;
-                    }
+        int speed = LIMIT.getSPEED();
+        if (speed > 0) {
+            int stepsCount = RandomGenerator.random(0, speed);
+            Cell previousCell = startCell;
+            Cell destinationCell = null;
+            int maxCountOnCell = LIMIT.getCOUNT_ON_CELL();
+            for (int i = 0; i < stepsCount; i++) {
+                List<Cell> neighborCells = previousCell.getNeighboringCells();
+                if (neighborCells.size() == 1){
+                    destinationCell = neighborCells.get (0);
+                } else if (neighborCells.size() > 0) {
+                    destinationCell = neighborCells.get(RandomGenerator.random(0, neighborCells.size() - 1));
                 }
-                if (destinationCell != null) {
+                if (destinationCell != null && destinationCell.getResidents().get(getType()).size() < maxCountOnCell) {
+                    previousCell = destinationCell;
+                } else {
+                    destinationCell = previousCell;
+                }
+            }
+            if (destinationCell != null && !destinationCell.equals(startCell)) {
+                if (isALive()) {
                     safeMove(startCell, destinationCell);
                 }
             }
-
-        } finally {
-            startCell.getLock().unlock();
         }
     }
 
-    protected boolean safeMove(Cell source, Cell destination) {
-        if (safeAddTo(destination)) { //if was added
-            if (safePollFrom(source)) { //and after was extract
-                return true; //ok
-            } else {
-                safePollFrom(destination); //die or eaten
+    protected void safeMove(Cell source, Cell destination) {
+        if (safeAddTo(destination)) {
+            if (!safePollFrom(source)) {
+                safePollFrom(destination);
             }
         }
-        return false;
     }
 
     protected boolean safeAddTo(Cell cell) {
